@@ -1,7 +1,7 @@
 FROM centos:7
 MAINTAINER Mahatab Mallick "mahatab16@gmail.com"
 
-ARG VERSION=3.0.2-02
+ARG VERSION=3.14.0-04
 ARG USER=nexus
 
 RUN yum install -y vim \
