@@ -424,10 +424,10 @@ i4j_classpath="$app_home/.install4j/i4jruntime.jar"
 local_classpath=""
 add_class_path "$i4j_classpath"
 add_class_path "$app_home/lib/boot/nexus-main.jar"
-add_class_path "$app_home/lib/boot/org.apache.karaf.main-4.0.4.jar"
+add_class_path "$app_home/lib/boot/org.apache.karaf.main-4.0.9.jar"
 add_class_path "$app_home/lib/boot/org.osgi.core-6.0.0.jar"
-add_class_path "$app_home/lib/boot/org.apache.karaf.diagnostic.boot-4.0.4.jar"
-add_class_path "$app_home/lib/boot/org.apache.karaf.jaas.boot-4.0.4.jar"
+add_class_path "$app_home/lib/boot/org.apache.karaf.diagnostic.boot-4.0.9.jar"
+add_class_path "$app_home/lib/boot/org.apache.karaf.jaas.boot-4.0.9.jar"
 
 vmoptions_val=""
 read_vmoptions "$prg_dir/$progname.vmoptions"
@@ -482,6 +482,14 @@ elif [ -n "$run_as_user" -a "$run_as_user" != "$user_name" ]; then
   # re-execute launcher script as specified user
   exec su - $run_as_user "$prg_dir/$progname" $@
 fi
+
+# deduce the chosen data directory and prepare log and tmp directories
+vm_args="$vmov_1 $vmov_2 $vmov_3 $vmov_4 $vmov_5 $INSTALL4J_ADD_VM_PARAMS"
+if expr "$vm_args" : '.*-Dkaraf\.data=.*' > /dev/null; then
+  data_dir=`echo "$vm_args -X" | sed -e 's/.*-Dkaraf\.data=//' -e 's/  *-[A-Za-z].*//'`
+  mkdir -p "$data_dir/log" "$data_dir/tmp"
+fi
+
 if [ "W$vmov_1" = "W" ]; then
   vmov_1="-Di4jv=0"
 fi
@@ -498,13 +506,12 @@ if [ "W$vmov_5" = "W" ]; then
   vmov_5="-Di4jv=0"
 fi
 
-
-$INSTALL4J_JAVA_PREFIX nohup "$app_java_home/bin/java" -server -Dinstall4j.jvmDir="$app_java_home" -Dexe4j.moduleName="$prg_dir/$progname" "-Dinstall4j.launcherId=245" "-Dinstall4j.swt=false" "$vmov_1" "$vmov_2" "$vmov_3" "$vmov_4" "$vmov_5" $INSTALL4J_ADD_VM_PARAMS -classpath "$local_classpath" com.install4j.runtime.launcher.UnixLauncher start 9d17dc87 "" "" org.sonatype.nexus.karaf.NexusMain  > /dev/null 2>&1 &
-
-
-$INSTALL4J_JAVA_PREFIX exec "$app_java_home/bin/java" -server -Dinstall4j.jvmDir="$app_java_home" -Dexe4j.moduleName="$prg_dir/$progname" "-Dinstall4j.launcherId=245" "-Dinstall4j.swt=false" "$vmov_1" "$vmov_2" "$vmov_3" "$vmov_4" "$vmov_5" $INSTALL4J_ADD_VM_PARAMS -classpath "$local_classpath" com.install4j.runtime.launcher.UnixLauncher start 9d17dc87 "" "" org.sonatype.nexus.karaf.NexusMain 
-
-
 echo "Starting nexus"
+
+$INSTALL4J_JAVA_PREFIX nohup "$app_java_home/bin/java" -server -Dinstall4j.jvmDir="$app_java_home" -Dexe4j.moduleName="$prg_dir/$progname" "-XX:+UnlockDiagnosticVMOptions" "-Dinstall4j.launcherId=245" "-Dinstall4j.swt=false" "$vmov_1" "$vmov_2" "$vmov_3" "$vmov_4" "$vmov_5" $INSTALL4J_ADD_VM_PARAMS -classpath "$local_classpath" com.install4j.runtime.launcher.UnixLauncher start 9d17dc87 "" "" org.sonatype.nexus.karaf.NexusMain  > /dev/null 2>&1 &
+
+
+$INSTALL4J_JAVA_PREFIX exec "$app_java_home/bin/java" -server -Dinstall4j.jvmDir="$app_java_home" -Dexe4j.moduleName="$prg_dir/$progname" "-XX:+UnlockDiagnosticVMOptions" "-Dinstall4j.launcherId=245" "-Dinstall4j.swt=false" "$vmov_1" "$vmov_2" "$vmov_3" "$vmov_4" "$vmov_5" $INSTALL4J_ADD_VM_PARAMS -classpath "$local_classpath" com.install4j.runtime.launcher.UnixLauncher start 9d17dc87 "" "" org.sonatype.nexus.karaf.NexusMain 
+
 
 exit $?
